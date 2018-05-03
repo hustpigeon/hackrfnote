@@ -1,1 +1,20 @@
 
+host代码包含两部分：libhackrf动态库以及工具类（可执行程序）
+
+（1）libhackrf 是为应用程序调用的动态库代码，其主要功能就是调用第三方动态库libusb和hackrf-one固件通信，两者之间通过usb协议通信。
+
+libhackrf提供了很多设置hackrf-one的接口，这些接口通过调用libusb的同步接口来实现，主要是libusb_control类的代码。这些请求是vendor厂商相关的
+在host端定义的request type要和hackrf-one固件中定义的request type要保持一致，因为当固件收到响应的usb请求时，会根据请求类型来调用响应的处理函数。
+
+libhackrf 通过调用libusb的异步通信接口来实现大数据量传输，主要步骤是
+alloc 一个transfer，然后将transfer初始化，设置内存，以及回调函数。设置完毕之后调用lib_submit_transfer函数，该函数会很快返回，当usb调用成功时
+会调用 transfer中设置的回调函数，在回调函数中对已经发送的transfer或者接收的transfer进行处理以及再设置，然后再调用lib_submit_transfer进行下次一
+调用usb接口传输。
+
+libhackrf对外提供的两个函数是hackrf_start_tx和hackrf_start_rx
+
+
+(2)工具类，工具类可以说是一个很好的使用libhackrf类的例子，通过学习这几个工具类就可以基本实现对libhackrf的操作
+
+
+总之：host 通过 libusb和设置通信，host和device约定好了相应的命令，两边彼此一致，device收到命令之后启动相应的操作。

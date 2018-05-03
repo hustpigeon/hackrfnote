@@ -1,0 +1,7 @@
+固件的代码主要部分还是usb，当host发送的usb数据包到达lpc4320时，会触发其中断的产生，进而调用中断处理函数，在usb0的中断处理函数中，芯片利用对寄存器的操作
+来回应host.
+
+固件usb中的transfer_schedule是对数据的响应，lpc4320自动完成对 “包”的ack，所以固件中不需要专门操作。当host发送in的命令请求(setup)时，此时固件应该获得host
+请求的内容，然后调用底层usb stack,设置好相应的transfer，芯片自动将数据回复。当host发送的是out命令（setup）时，固件应该设置好该endpoint中的buffer,以便等host
+真正发送了数据之后，usb stack自动将数据拷贝到响应的tranfer中。然后根据setup中的request type调用响应的处理函数。比如host发送一个设置中频的命令，
+固件获得之后将调用响应的函数对中频进行设置。
